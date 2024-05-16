@@ -1,0 +1,5 @@
+.\venv\scripts\activate
+
+pip list
+
+pip install -r req.txtm
