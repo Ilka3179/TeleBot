@@ -7,10 +7,19 @@ class DataBase:
         self.db_name = db_name
         self.__create_table()
 
-    def __create_table(self):
-        # pass
+    def __create_table(self):        
         sql = self.connect_db()
-
+        sql["cursor"].execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id_telegram INTEGER,
+                username TEXT,
+                last_name TEXT,
+                first_name TEXT,
+                date_registration TEXT, 
+                access BOOLEAN DEFAULT 1        
+            )
+        ''')
         self.close(sql['cursor'], sql['connect'])
 
     def connect_db(self):
@@ -28,8 +37,8 @@ class TelegramBot(DataBase):
         super().__init__(db_name)
         self.bot = telebot.TeleBot(token)
         self.router()
-    def router(self):
 
+    def router(self):
         @self.bot.message_handler(commands=['start'])
         def start(message):
             print(message)
@@ -42,7 +51,7 @@ class TelegramBot(DataBase):
         def echo_all(message):
             self.bot.reply_to(
                 message,
-                'Не понимаю...'
+                'Я не понимаю('
             )
             self.bot.delete_message(
                 chat_id=message.chat.id,
