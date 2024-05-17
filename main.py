@@ -82,8 +82,12 @@ class DataBase:
                 id_user, message_id, message_text, date_send
             ) VALUES (?, ?, ?, ?)
         ''', (
-            
+            self.check_user(message.from_user.id)['info_users'][0],
+            'message.from_user.message_id',
+            'message.from_user.message_text',
+            date
         ))
+        sql['connect'].commit()
         self.close(sql['cursor'], sql['connect'])
 
     def close(self, cursor, connect):
@@ -101,7 +105,7 @@ class TelegramBot(DataBase):
 
         @self.bot.message_handler(commands=['start'])
         def start(message):            
-            text = ''
+            text = ''            
             if self.check_user(message.from_user.id)['status']:
                 text += 'С возвращением'
             else:
@@ -113,7 +117,9 @@ class TelegramBot(DataBase):
             )
 
         @self.bot.message_handler(func=lambda message: True)  
-        def echo_all(message):            
+        def echo_all(message):  
+            self.insert_message(message)
+            print(self.check_user(message.from_user.id)['info_users'][0])         
             self.bot.reply_to(
                 message,
                 'Сообщение отправлено админу'
