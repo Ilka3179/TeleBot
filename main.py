@@ -75,6 +75,7 @@ class DataBase:
         self.close(sql['cursor'], sql['connect'])
 
     def insert_message(self, message: dict):
+        print(message.text)
         sql = self.connect_db()   
         date = datetime.datetime.now().strftime('%Y-%m-%d')    
         sql['cursor'].execute('''
@@ -83,8 +84,8 @@ class DataBase:
             ) VALUES (?, ?, ?, ?)
         ''', (
             self.check_user(message.from_user.id)['info_users'][0],
-            'message.from_user.message_id',
-            'message.from_user.message_text',
+            message.message_id,
+            message.text,
             date
         ))
         sql['connect'].commit()
@@ -118,8 +119,7 @@ class TelegramBot(DataBase):
 
         @self.bot.message_handler(func=lambda message: True)  
         def echo_all(message):  
-            self.insert_message(message)
-            print(self.check_user(message.from_user.id)['info_users'][0])         
+            self.insert_message(message)                    
             self.bot.reply_to(
                 message,
                 'Сообщение отправлено админу'
