@@ -8,7 +8,7 @@ class DataBase:
         self.db_name = db_name
         self.__create_table()
 
-    def __create_table(self):        
+    def __create_table(self):
         sql = self.connect_db()
         sql["cursor"].execute('''
             CREATE TABLE IF NOT EXISTS users (
@@ -38,14 +38,14 @@ class DataBase:
         with sqlite3.connect(self.db_name) as connect:
             cursor = connect.cursor()
         return {'connect': connect, 'cursor': cursor}
-    
+
     def check_user(self, user_id):
         sql = self.connect_db()
         sql['cursor'].execute('''
             SELECT * FROM users WHERE id_telegram = ?
         ''', (user_id, ))
 
-        info_users = sql['cursor'].fetchone()          
+        info_users = sql['cursor'].fetchone()
         self.close(sql['cursor'], sql['connect'])
         if info_users is None:
             return {
@@ -54,9 +54,8 @@ class DataBase:
         return {
             'status': True,
             'info_users': info_users
-
         }
-    
+
     def create_user(self, message: dict):
         sql = self.connect_db()
         date = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -68,16 +67,15 @@ class DataBase:
             message.from_user.id,
             message.from_user.username,
             message.from_user.first_name,
-            message.from_user.last_name,            
+            message.from_user.last_name,
             date
         ))
         sql['connect'].commit()
         self.close(sql['cursor'], sql['connect'])
 
-    def insert_message(self, message: dict):
-        print(message.text)
-        sql = self.connect_db()   
-        date = datetime.datetime.now().strftime('%Y-%m-%d')    
+    def insert_message(self, message: dict):          
+        sql = self.connect_db()
+        date = datetime.datetime.now().strftime('%Y-%m-%d')
         sql['cursor'].execute('''
             INSERT INTO messages (
                 id_user, message_id, message_text, date_send
@@ -105,8 +103,8 @@ class TelegramBot(DataBase):
     def router(self):
 
         @self.bot.message_handler(commands=['start'])
-        def start(message):            
-            text = ''            
+        def start(message):
+            text = ''
             if self.check_user(message.from_user.id)['status']:
                 text += 'С возвращением'
             else:
@@ -117,9 +115,9 @@ class TelegramBot(DataBase):
                 text
             )
 
-        @self.bot.message_handler(func=lambda message: True)  
-        def echo_all(message):  
-            self.insert_message(message)                    
+        @self.bot.message_handler(func=lambda message: True)
+        def echo_all(message):
+            self.insert_message(message)
             self.bot.reply_to(
                 message,
                 'Сообщение отправлено админу'
@@ -127,6 +125,6 @@ class TelegramBot(DataBase):
         self.bot.polling()
 
 TelegramBot(
-    db_name = 'tg.db',
-    token = '6822316148:AAGwWNs-BaX40hr-kEP7aTjUw0uG3VL8uP0'
+    db_name='tg.db',
+    token='6822316148:AAGwWNs-BaX40hr-kEP7aTjUw0uG3VL8uP0'
 )
