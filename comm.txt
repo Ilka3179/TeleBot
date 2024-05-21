@@ -3,3 +3,7 @@
 pip list
 
 pip install -r req.txt
+
+id chat -4283799687
+
+https://www.pythonanywhere.com/

@@ -2,7 +2,6 @@ import telebot
 import datetime
 import sqlite3
 
-
 class DataBase:
     def __init__(self, db_name):
         self.db_name = db_name
@@ -74,14 +73,20 @@ class DataBase:
         self.close(sql['cursor'], sql['connect'])
 
     def insert_message(self, message: dict):          
-        sql = self.connect_db()
         date = datetime.datetime.now().strftime('%Y-%m-%d')
+        info_user = self.check_user(message.from_user.id)
+        if not info_user['status']:
+            self.create_user(message)
+            id_user = self.check_user(message.from_user.id)['info_users'][0]
+        else:
+            id_user = self.check_user(message.from_user.id)['info_users'][0]      
+        sql = self.connect_db()
         sql['cursor'].execute('''
             INSERT INTO messages (
                 id_user, message_id, message_text, date_send
             ) VALUES (?, ?, ?, ?)
         ''', (
-            self.check_user(message.from_user.id)['info_users'][0],
+            id_user,
             message.message_id,
             message.text,
             date
@@ -98,7 +103,9 @@ class TelegramBot(DataBase):
     def __init__(self, db_name, token):
         super().__init__(db_name)
         self.bot = telebot.TeleBot(token)
+        self.admin_chat_id = -4283799687
         self.router()
+
 
     def router(self):
 
@@ -122,6 +129,7 @@ class TelegramBot(DataBase):
                 message,
                 'Сообщение отправлено админу'
             )
+            self.bot.send_message(self.admin_chat_id, 'Новая заявка')
         self.bot.polling()
 
 TelegramBot(
