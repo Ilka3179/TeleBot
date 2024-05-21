@@ -2,4 +2,4 @@
 
 pip list
 
-pip install -r req.txtm
+pip install -r req.txt
