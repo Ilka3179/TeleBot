@@ -1,6 +1,7 @@
 import telebot
 import datetime
 import sqlite3
+import re
 
 class DataBase:
     def __init__(self, db_name):
@@ -92,7 +93,9 @@ class DataBase:
             date
         ))
         sql['connect'].commit()
+        id_message = sql['cursor'].lastrowid
         self.close(sql['cursor'], sql['connect'])
+        return id_message
 
     def close(self, cursor, connect):
         cursor.close()
@@ -124,12 +127,22 @@ class TelegramBot(DataBase):
 
         @self.bot.message_handler(func=lambda message: True)
         def echo_all(message):
-            self.insert_message(message)
-            self.bot.reply_to(
-                message,
-                'Сообщение отправлено админу'
-            )
-            self.bot.send_message(self.admin_chat_id, 'Новая заявка')
+            if message.chat.id != self.admin_chat_id:
+                id_message = self.insert_message(message)
+                self.bot.reply_to(
+                    message,
+                    'Сообщение отправлено админу'
+                )            
+                text = f'''
+Номер заявки №{id_message}
+id пользователя {message.from_user.id}
+Сообщение: {message.text}
+                '''                
+                self.bot.send_message(self.admin_chat_id, text)    
+            elif message.chat.id == self.admin_chat_id and message.reply_to_message != None:
+                reply_message = str(message.reply_to_message.text)
+                id_application = reply_message
+                print('hgfdhd')
         self.bot.polling()
 
 TelegramBot(
