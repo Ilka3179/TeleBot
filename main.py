@@ -47,6 +47,7 @@ class DataBase:
 
         info_users = sql['cursor'].fetchone()
         self.close(sql['cursor'], sql['connect'])
+
         if info_users is None:
             return {
                 'status': False
@@ -69,32 +70,35 @@ class DataBase:
             message.from_user.first_name,
             message.from_user.last_name,
             date
+
         ))
         sql['connect'].commit()
         self.close(sql['cursor'], sql['connect'])
 
     def insert_message(self, message: dict):          
         date = datetime.datetime.now().strftime('%Y-%m-%d')
+
         info_user = self.check_user(message.from_user.id)
         if not info_user['status']:
             self.create_user(message)
             id_user = self.check_user(message.from_user.id)['info_users'][0]
         else:
-            id_user = self.check_user(message.from_user.id)['info_users'][0]      
+            id_user = self.check_user(message.from_user.id)['info_users'][0]
         sql = self.connect_db()
+
         sql['cursor'].execute('''
             INSERT INTO messages (
                 id_user, message_id, message_text, date_send
             ) VALUES (?, ?, ?, ?)
         ''', (
-            id_user,
-            message.message_id,
-            message.text,
-            date
+            id_user, message.message_id, message.text, date
         ))
         sql['connect'].commit()
+
         id_message = sql['cursor'].lastrowid
+
         self.close(sql['cursor'], sql['connect'])
+
         return id_message
 
     def close(self, cursor, connect):
@@ -106,9 +110,8 @@ class TelegramBot(DataBase):
     def __init__(self, db_name, token):
         super().__init__(db_name)
         self.bot = telebot.TeleBot(token)
-        self.admin_chat_id = -4283799687
+        self.admin_chat_id = -4229502991
         self.router()
-
 
     def router(self):
 
@@ -120,6 +123,7 @@ class TelegramBot(DataBase):
             else:
                 self.create_user(message)
                 text += f'Добро пожаловать, {message.from_user.first_name}!'
+
             self.bot.send_message(
                 message.chat.id,
                 text
@@ -139,11 +143,25 @@ id пользователя {message.from_user.id}
 Сообщение: {message.text}
                 '''                
                 self.bot.send_message(self.admin_chat_id, text)    
+
             elif message.chat.id == self.admin_chat_id and message.reply_to_message != None:
                 reply_message = str(message.reply_to_message.text)
-                id_application = reply_message
-                print('hgfdhd')
+                print(reply_message)
+                id_application = re.search(r'Номер заявки №(\d+)', reply_message).group(1)
+                id_user = re.search(r'ID пользователя: (\d+)', reply_message).group(1)
+                message_text = reply_message.split("\n")[2].split(': ')[-1] # Исправим
+
+                current_text = message.text
+
+                self.bot.send_message(
+                    id_user,
+                    f"Ответ от администратора: {current_text}",
+                    # reply_to_message_id=56
+                )
+                
+
         self.bot.polling()
+
 
 TelegramBot(
     db_name='tg.db',
