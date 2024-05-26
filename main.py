@@ -163,15 +163,15 @@ id пользователя {message.from_user.id}
                 id_user = re.search(
                     r'id пользователя (\d+)', reply_message).group(1)               
 
-                id_messare_user = self.check_application(id_application)
-                
+                id_messare_user = self.check_application(id_application)                
 
                 self.bot.send_message(
                     id_user,
-                    f"Ответ от администратора: {id_messare_user}",
-                    reply_to_message_id=id_messare_user[0]
-                )                
+                    f"Ответ от администратора: {id_messare_user}",                    
+                    reply_to_message_id=id_messare_user[0]                    
+                )
 
+                
         self.bot.polling()
 
 TelegramBot(
